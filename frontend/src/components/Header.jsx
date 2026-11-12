@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
-import { setTab, openModal } from '../redux/uiSlice';
+import { openModal } from '../redux/uiSlice';
 import { azn, initial } from '../utils/money';
 
 export const TABS = [
@@ -14,10 +15,13 @@ export const TABS = [
 
 export default function Header() {
   const dispatch = useDispatch();
-  const tab = useSelector((s) => s.ui.tab);
   const user = useSelector((s) => s.auth.user);
   const balance = useSelector((s) => s.wallet.balance);
   const tabs = TABS.filter((t) => !t.admin || (user && user.role === 'admin'));
+
+  const desktopCls = ({ isActive }) =>
+    `px-3 py-1.5 rounded-lg transition ${isActive ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-400'}`;
+  const mobileCls = ({ isActive }) => (isActive ? 'text-rose-500' : 'text-slate-400');
 
   return (
     <>
@@ -26,8 +30,7 @@ export default function Header() {
           <h1 className="text-2xl font-extrabold tracking-wider text-rose-500">KLAN<span className="text-white">.AZ</span></h1>
           <nav className="hidden md:flex items-center gap-3 text-xs font-bold">
             {tabs.map((t) => (
-              <button key={t.id} onClick={() => dispatch(setTab(t.id))}
-                className={`px-3 py-1.5 rounded-lg transition ${tab === t.id ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-400'}`}>{t.label}</button>
+              <NavLink key={t.id} to={`/${t.id}`} className={desktopCls}>{t.label}</NavLink>
             ))}
           </nav>
         </div>
@@ -47,7 +50,7 @@ export default function Header() {
 
       <div className="md:hidden bg-slate-900 border-b border-slate-800 flex justify-around p-2 text-xs font-bold overflow-x-auto gap-3">
         {tabs.map((t) => (
-          <button key={t.id} onClick={() => dispatch(setTab(t.id))} className={tab === t.id ? 'text-rose-500' : 'text-slate-400'}>{t.short}</button>
+          <NavLink key={t.id} to={`/${t.id}`} className={mobileCls}>{t.short}</NavLink>
         ))}
       </div>
     </>

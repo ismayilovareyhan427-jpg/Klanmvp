@@ -1,6 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../api/client';
 
+// localStorage-dakı tokeni oxuyur; vaxtı bitibsə və ya pozuqdursa silir
+const readToken = () => {
+  const t = localStorage.getItem('token');
+  if (!t) return null;
+  try {
+    const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (payload.exp && payload.exp * 1000 < Date.now()) { localStorage.removeItem('token'); return null; }
+    return t;
+  } catch {
+    localStorage.removeItem('token');
+    return null;
+  }
+};
+
 // mode: 'login' | 'register'
 export const authenticate = createAsyncThunk('auth/authenticate', async ({ mode, username, password }, { rejectWithValue }) => {
   try { return await api(`/auth/${mode}`, { method: 'POST', body: { username, password }, token: null }); }
@@ -14,7 +28,7 @@ export const fetchMe = createAsyncThunk('auth/me', async (_, { rejectWithValue }
 
 const slice = createSlice({
   name: 'auth',
-  initialState: { token: localStorage.getItem('token'), user: null, loading: false, error: null },
+  initialState: { token: readToken(), user: null, loading: false, error: null },
   reducers: {
     logout: (s) => { s.token = null; s.user = null; s.error = null; },
     clearAuthError: (s) => { s.error = null; },
